@@ -1,41 +1,62 @@
 import React from 'react';
 import { useForm } from "react-hook-form";
 import auth from '../../firebase.init';
-import { useSignInWithEmailAndPassword, useSignInWithGoogle } from 'react-firebase-hooks/auth';
+import { useSignInWithEmailAndPassword, useSignInWithGoogle, useUpdateProfile } from 'react-firebase-hooks/auth';
 import Loading from '../Shared/Loading';
-import { Link } from 'react-router-dom';
-const Login = () => {
+import { Link, useNavigate } from 'react-router-dom';
+const Register = () => {
+    const navigate = useNavigate();
     const [signInWithGoogle, gUser, gLoading, gError] = useSignInWithGoogle(auth);
     const { register, formState: { errors }, handleSubmit } = useForm();
+    const [updateProfile, updating, updateError] = useUpdateProfile(auth);
     const [
         signInWithEmailAndPassword,
         user,
         loading,
         error,
       ] = useSignInWithEmailAndPassword(auth);
-    
-    
-    
-    if(loading || gLoading){
+    if(loading || gLoading || updating){
         return <Loading></Loading>
     }
     let loginError;
-    if(error || gError){
-        loginError = <p className='text-red-500 font-bold'>{error?.message || gError?.message}</p>
+    if(error || gError || updateError){
+        loginError = <p className='text-red-500 font-bold'>{error?.message || gError?.message || updateError?.message}</p>
     }
     if(user || gUser){
-        console.log(user);
+        console.log(user || gUser);
     }
-    const onSubmit = (data) => {
+    const onSubmit = async(data) => {
         console.log(data);
-        signInWithEmailAndPassword(data.name, data.email)
+        await signInWithEmailAndPassword(data.name, data.email);
+        await updateProfile({ displayName:data.name });
+        alert('Updated profile');
+        navigate('/about')
     };
     return (
         <div className='flex justify-center h-screen items-center'>
             <div className="card w-96 bg-base-100 shadow-xl">
                 <div className="card-body">
-                    <h2 className="text-center font-bold">Login</h2>
+                    <h2 className="text-center font-bold">Sign Up</h2>
                     <form onSubmit={handleSubmit(onSubmit)} className='grid grid-cols-1 justify-items-center'>
+                        <div className="form-control w-full max-w-xs">
+                            <label className="label">
+                                <span className="label-text">Name</span>
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="Write Your Name"
+                                className="input input-bordered w-full max-w-xs"
+                                {...register("name", {
+                                    required: {
+                                        value: true,
+                                        message: 'Please Fill Required Field'
+                                    }
+                                })}
+                            />
+                            <label className="label">
+                                {errors.name?.type === 'required' && <span className='text-red-500 font-bold'>{errors?.name.message}</span>}
+                            </label>
+                        </div>
                         <div className="form-control w-full max-w-xs">
                             <label className="label">
                                 <span className="label-text">Email</span>
@@ -85,7 +106,7 @@ const Login = () => {
                             </label>
                         </div>
                         {loginError}
-                        <input type="submit" className='btn btn-primary w-full' value='Login' />
+                        <input type="submit" className='btn btn-primary w-full' value='SignUp' />
                     </form>
                     <p><small>New to Doctors Portal? <Link className='text-primary' to='/register'>Create New Account</Link></small></p>
                     <div className="divider">OR</div>
@@ -96,4 +117,4 @@ const Login = () => {
     );
 };
 
-export default Login;
+export default Register;
