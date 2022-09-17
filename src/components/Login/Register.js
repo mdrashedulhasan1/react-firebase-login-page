@@ -1,20 +1,20 @@
 import React from 'react';
-import { useForm } from "react-hook-form";
-import auth from '../../firebase.init';
-import { useSignInWithEmailAndPassword, useSignInWithGoogle, useUpdateProfile } from 'react-firebase-hooks/auth';
-import Loading from '../Shared/Loading';
+import { useCreateUserWithEmailAndPassword, useSignInWithGoogle, useUpdateProfile } from 'react-firebase-hooks/auth';
+import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
+import auth from '../../firebase.init';
+import Loading from '../Shared/Loading';
 const Register = () => {
     const navigate = useNavigate();
     const [signInWithGoogle, gUser, gLoading, gError] = useSignInWithGoogle(auth);
     const { register, formState: { errors }, handleSubmit } = useForm();
     const [updateProfile, updating, updateError] = useUpdateProfile(auth);
     const [
-        signInWithEmailAndPassword,
+        createUserWithEmailAndPassword,
         user,
         loading,
         error,
-      ] = useSignInWithEmailAndPassword(auth);
+      ] = useCreateUserWithEmailAndPassword(auth);
     if(loading || gLoading || updating){
         return <Loading></Loading>
     }
@@ -27,10 +27,10 @@ const Register = () => {
     }
     const onSubmit = async(data) => {
         console.log(data);
-        await signInWithEmailAndPassword(data.name, data.email);
-        await updateProfile({ displayName:data.name });
+        await createUserWithEmailAndPassword(data.email, data.password);
+        await updateProfile({displayName:data.name} );
         alert('Updated profile');
-        navigate('/about')
+        navigate('/')
     };
     return (
         <div className='flex justify-center h-screen items-center'>
@@ -108,7 +108,7 @@ const Register = () => {
                         {loginError}
                         <input type="submit" className='btn btn-primary w-full' value='SignUp' />
                     </form>
-                    <p><small>New to Doctors Portal? <Link className='text-primary' to='/register'>Create New Account</Link></small></p>
+                    <p><small>Already You Have An Account? <Link className='text-primary' to='/login'>Login</Link></small></p>
                     <div className="divider">OR</div>
                     <button onClick={() => signInWithGoogle()} className="btn btn-outline btn-success">Google_SignIn</button>
                 </div>

@@ -3,8 +3,12 @@ import { useForm } from "react-hook-form";
 import auth from '../../firebase.init';
 import { useSignInWithEmailAndPassword, useSignInWithGoogle } from 'react-firebase-hooks/auth';
 import Loading from '../Shared/Loading';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 const Login = () => {
+    let navigate = useNavigate();
+    let location = useLocation();
+    let from = location.state?.from?.pathname || "/";
     const [signInWithGoogle, gUser, gLoading, gError] = useSignInWithGoogle(auth);
     const { register, formState: { errors }, handleSubmit } = useForm();
     const [
@@ -12,23 +16,26 @@ const Login = () => {
         user,
         loading,
         error,
-      ] = useSignInWithEmailAndPassword(auth);
-    
-    
-    
-    if(loading || gLoading){
+    ] = useSignInWithEmailAndPassword(auth);
+
+    useEffect(() => {
+        if (user || gUser) {
+            console.log(user);
+            navigate(from, { replace: true });
+        }
+    })
+
+    if (loading || gLoading) {
         return <Loading></Loading>
     }
     let loginError;
-    if(error || gError){
+    if (error || gError) {
         loginError = <p className='text-red-500 font-bold'>{error?.message || gError?.message}</p>
     }
-    if(user || gUser){
-        console.log(user);
-    }
+
     const onSubmit = (data) => {
         console.log(data);
-        signInWithEmailAndPassword(data.name, data.email)
+        signInWithEmailAndPassword(data.email, data.password)
     };
     return (
         <div className='flex justify-center h-screen items-center'>
